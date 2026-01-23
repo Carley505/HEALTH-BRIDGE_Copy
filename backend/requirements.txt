@@ -1,0 +1,29 @@
+# Core dependencies
+fastapi>=0.109.0
+uvicorn[standard]>=0.27.0
+python-dotenv>=1.0.0
+
+# Database
+motor>=3.3.0
+beanie>=1.25.0
+
+# Vector DB & RAG
+chromadb>=0.4.22
+sentence-transformers>=2.3.0
+
+# Agent framework
+crewai>=0.28.0
+langchain>=0.1.0
+langchain-community>=0.0.20
+
+# Background tasks
+celery>=5.3.0
+redis>=5.0.0
+
+# Auth
+firebase-admin>=6.4.0
+
+# Utils
+pydantic>=2.5.0
+pydantic-settings>=2.1.0
+httpx>=0.26.0
