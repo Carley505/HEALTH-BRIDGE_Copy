@@ -8,6 +8,7 @@ from datetime import datetime
 from typing import Dict, Any, List, Optional
 
 from opik import track
+from opik.integrations.crewai import track_crewai
 
 from app.agents.crew import HealthBridgeCrew, ParallelIntakeOrchestrator
 from app.services.input_collector import InputCollector
@@ -284,12 +285,15 @@ class ChatService:
             result = self._run_parallel_intake(user_input, user_id, memory_context)
         elif session_type == "intake":
             crew = self.crew.intake_crew(user_input, user_id, memory_context)
+            track_crewai(crew=crew)
             result = crew.kickoff(inputs={"user_id": user_id})
         elif session_type == "follow_up":
             crew = self.crew.follow_up_crew(user_input, user_id, memory_context)
+            track_crewai(crew=crew)
             result = crew.kickoff(inputs={"user_id": user_id})
         else:
             crew = self.crew.general_crew(user_input, user_id, memory_context)
+            track_crewai(crew=crew)
             result = crew.kickoff(inputs={"user_id": user_id})
 
         # Post-processing: save key outputs to memory

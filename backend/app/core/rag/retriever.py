@@ -14,6 +14,7 @@ import os
 from app.config.settings import settings
 from app.core.rag.embeddings import get_embedding_client
 from app.core.rag.chunker import Chunk
+from opik import track
 
 
 class VectorRetriever:
@@ -155,6 +156,7 @@ class VectorRetriever:
         
         return formatted
 
+    @track(name="rag_search_guidelines")
     def search_guidelines(
         self,
         query: str,

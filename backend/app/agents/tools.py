@@ -17,8 +17,6 @@ import signal
 import threading
 from datetime import datetime
 
-from app.core.config import tracked
-
 logger = logging.getLogger(__name__)
 
 
@@ -132,19 +130,8 @@ def get_critic():
 # --- Tracing helper ---
 
 def _trace_tool(tool_name: str, **metadata):
-    """Log tool invocation for Opik tracing visibility.
-
-    When TRACING_ENABLED=true, this creates a sub-span in the Opik trace.
-    When disabled, this is a cheap no-op (just a logger.debug call).
-    """
-    from app.core.config import is_tracing_enabled
+    """Log tool invocation for debugging. CrewAI tools are traced via track_crewai."""
     logger.debug(f"Tool invoked: {tool_name} | metadata={metadata}")
-    if is_tracing_enabled():
-        try:
-            from opik import track
-            # Opik will associate this with the parent trace automatically
-        except ImportError:
-            pass
 
 
 # --- CrewAI Tool Definitions ---

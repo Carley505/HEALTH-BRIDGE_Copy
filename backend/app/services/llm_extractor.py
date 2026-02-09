@@ -15,6 +15,9 @@ import re
 from typing import Dict, List, Optional, Any
 from dataclasses import dataclass
 
+from opik.integrations.genai import track_genai
+from opik.integrations.openai import track_openai
+
 
 @dataclass
 class ExtractionResult:
@@ -64,7 +67,7 @@ class LLMExtractor:
             try:
                 from google import genai
 
-                self._genai_client = genai.Client(api_key=api_key)
+                self._genai_client = track_genai(genai.Client(api_key=api_key))
 
                 # Try different model names (lite first to save quota)
                 models_to_try = [
@@ -97,7 +100,7 @@ class LLMExtractor:
         if openai_key and not openai_key.startswith("sk-proj"):  # Skip if placeholder
             try:
                 from openai import OpenAI
-                self.llm_client = OpenAI()
+                self.llm_client = track_openai(OpenAI())
                 # Test
                 response = self.llm_client.chat.completions.create(
                     model="gpt-3.5-turbo",

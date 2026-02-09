@@ -8,6 +8,7 @@ Provides:
 - configure_tracing() to be called at app startup
 """
 
+import asyncio
 import logging
 from functools import wraps
 
@@ -86,21 +87,42 @@ def tracked(name: str = None, tags: list = None):
         def retrieve_guidelines(...):
             ...
     """
+    def _get_track_decorator():
+        """Build the opik @track decorator with the given kwargs."""
+        try:
+            from opik import track
+            track_kwargs = {}
+            if name:
+                track_kwargs["name"] = name
+            if tags:
+                track_kwargs["tags"] = tags
+            return track(**track_kwargs) if track_kwargs else track
+        except Exception:
+            return None
+
     def decorator(func):
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            if is_tracing_enabled():
-                try:
-                    from opik import track
-                    track_kwargs = {}
-                    if name:
-                        track_kwargs["name"] = name
-                    if tags:
-                        track_kwargs["tags"] = tags
-                    decorated = track(**track_kwargs)(func) if track_kwargs else track(func)
-                    return decorated(*args, **kwargs)
-                except Exception:
-                    pass
-            return func(*args, **kwargs)
-        return wrapper
+        if asyncio.iscoroutinefunction(func):
+            @wraps(func)
+            async def async_wrapper(*args, **kwargs):
+                if is_tracing_enabled():
+                    opik_track = _get_track_decorator()
+                    if opik_track:
+                        try:
+                            return await opik_track(func)(*args, **kwargs)
+                        except Exception:
+                            pass
+                return await func(*args, **kwargs)
+            return async_wrapper
+        else:
+            @wraps(func)
+            def wrapper(*args, **kwargs):
+                if is_tracing_enabled():
+                    opik_track = _get_track_decorator()
+                    if opik_track:
+                        try:
+                            return opik_track(func)(*args, **kwargs)
+                        except Exception:
+                            pass
+                return func(*args, **kwargs)
+            return wrapper
     return decorator

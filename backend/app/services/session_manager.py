@@ -18,7 +18,7 @@ from typing import Dict, List, Optional, Any, Tuple
 from dataclasses import dataclass, field
 from datetime import datetime
 
-from app.core.config import tracked
+from opik import track
 from app.services.conversation_state import ConversationState, FieldConfidence
 from app.services.input_collector import InputCollector
 
@@ -140,7 +140,7 @@ class SessionManager:
         self._welcome_shown = True
         return welcome
     
-    @tracked(name="process_message", tags=["session"])
+    @track(name="session_process_message")
     def process_message(self, message: str) -> SessionResult:
         """
         Process a user message and return appropriate response.

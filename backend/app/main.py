@@ -51,6 +51,19 @@ async def lifespan(app: FastAPI):
     await init_db()
     logger.info("Database connected")
 
+    # Initialize Opik tracing (reads OPIK_* from .env)
+    if settings.OPIK_API_KEY:
+        try:
+            import opik
+            opik.configure(
+                api_key=settings.OPIK_API_KEY,
+                project_name=settings.OPIK_PROJECT_NAME,
+                workspace=settings.OPIK_WORKSPACE,
+            )
+            logger.info("Opik tracing initialized: project=%s", settings.OPIK_PROJECT_NAME)
+        except Exception as e:
+            logger.warning("Opik tracing init failed: %s", e)
+
     # Pre-initialize the LLM extractor + semantic matcher at startup
     # so the first chat request isn't delayed by ~40s of model loading
     try:

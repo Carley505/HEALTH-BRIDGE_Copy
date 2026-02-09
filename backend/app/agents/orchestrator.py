@@ -15,6 +15,8 @@ from uuid import uuid4
 from app.models.profile import HealthProfile
 from app.services.session_manager import SessionManager
 from app.services.chat import ChatService
+from opik import track
+from opik.integrations.genai import track_genai
 
 logger = logging.getLogger(__name__)
 
@@ -256,6 +258,7 @@ class ChatOrchestrator:
     # Message Processing
     # ------------------------------------------------------------------
 
+    @track(name="crew_pipeline")
     async def process_message(
         self,
         user_id: str,
@@ -326,6 +329,7 @@ class ChatOrchestrator:
 
         return {"content": final_response, "agent_name": "crew"}
 
+    @track(name="quick_message")
     async def quick_message(
         self,
         user_id: str,
@@ -381,6 +385,7 @@ class ChatOrchestrator:
             }
 
     @staticmethod
+    @track(name="direct_llm_call")
     def _direct_llm_call(
         message: str,
         user_id: str,
@@ -405,6 +410,7 @@ class ChatOrchestrator:
             )
 
     @staticmethod
+    @track(name="gemini_call")
     def _gemini_call(
         message: str, system_prompt: str, conversation_history: list = None
     ) -> str:
@@ -414,7 +420,7 @@ class ChatOrchestrator:
         from google.genai import types
 
         api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
-        client = genai.Client(api_key=api_key)
+        client = track_genai(genai.Client(api_key=api_key))
 
         # Build contents list: history entries + current message
         # Gemini uses "model" instead of "assistant"
@@ -451,6 +457,7 @@ class ChatOrchestrator:
         return text
 
     @staticmethod
+    @track(name="openai_compatible_call")
     def _openai_compatible_call(
         message: str, system_prompt: str, provider: str, conversation_history: list = None
     ) -> str:
