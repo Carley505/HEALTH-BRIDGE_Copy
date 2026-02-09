@@ -1,11 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchProfile } from '../features/profile/profileSlice';
+import { fetchProfile, updateProfile } from '../features/profile/profileSlice';
 import { logout } from '../features/auth/authSlice';
 import ProfileForm from '../features/profile/ProfileForm';
 import { Link, useNavigate } from 'react-router-dom';
 import ThemeToggle from '../components/ThemeToggle';
-import { MessageSquare, User, Activity, LogOut, ChevronRight } from 'lucide-react';
+import { MessageSquare, User, Activity, LogOut, ChevronRight, Camera } from 'lucide-react';
 
 export default function DashboardPage() {
   const dispatch = useDispatch();
@@ -13,6 +13,35 @@ export default function DashboardPage() {
   const { data: profile, loading } = useSelector((state) => state.profile);
   const [isEditing, setIsEditing] = useState(false);
   const navigate = useNavigate();
+  const avatarInputRef = useRef(null);
+
+  const handleAvatarChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const img = new Image();
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const size = 128;
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext('2d');
+        const scale = Math.max(size / img.width, size / img.height);
+        const w = img.width * scale;
+        const h = img.height * scale;
+        ctx.drawImage(img, (size - w) / 2, (size - h) / 2, w, h);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+        dispatch(updateProfile({ photo_url: dataUrl }));
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  };
+
+  const avatarSrc = profile?.photo_url || user?.photoURL;
 
   useEffect(() => {
     dispatch(fetchProfile());
@@ -62,17 +91,33 @@ export default function DashboardPage() {
             <div className="flex items-center gap-4">
               <ThemeToggle />
 
-              {/* User Avatar */}
-              {user?.photoURL ? (
-                <img className="h-10 w-10 rounded-full object-cover ring-2 ring-offset-2"
-                  style={{ ringColor: 'var(--color-primary)' }}
-                  src={user.photoURL} alt={user.displayName} />
-              ) : (
-                <div className="h-10 w-10 rounded-full flex items-center justify-center text-white font-bold text-lg"
-                  style={{ background: 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%)' }}>
-                  {user?.displayName ? user.displayName.charAt(0).toUpperCase() : (user?.email ? user.email.charAt(0).toUpperCase() : '?')}
+              {/* User Avatar (clickable) */}
+              <input
+                ref={avatarInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleAvatarChange}
+              />
+              <button
+                onClick={() => avatarInputRef.current?.click()}
+                className="relative group"
+                title="Change avatar"
+              >
+                {avatarSrc ? (
+                  <img className="h-10 w-10 rounded-full object-cover ring-2 ring-offset-2"
+                    style={{ ringColor: 'var(--color-primary)' }}
+                    src={avatarSrc} alt={user?.displayName || 'Avatar'} />
+                ) : (
+                  <div className="h-10 w-10 rounded-full flex items-center justify-center text-white font-bold text-lg"
+                    style={{ background: 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%)' }}>
+                    {user?.displayName ? user.displayName.charAt(0).toUpperCase() : (user?.email ? user.email.charAt(0).toUpperCase() : '?')}
+                  </div>
+                )}
+                <div className="absolute inset-0 rounded-full flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Camera className="w-4 h-4 text-white" />
                 </div>
-              )}
+              </button>
 
               <span className="text-sm font-medium hidden sm:block" style={{ color: 'var(--text-primary)' }}>
                 {user?.displayName || user?.email?.split('@')[0]}
