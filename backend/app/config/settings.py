@@ -4,8 +4,16 @@ Application Settings
 Environment-based configuration using Pydantic Settings.
 """
 
+import os
+from pathlib import Path
 from typing import List
+from dotenv import dotenv_values, load_dotenv
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+# Explicitly load .env file into environment so project-specific keys take precedence
+env_path = Path(__file__).resolve().parent.parent.parent / ".env"
+if env_path.exists():
+    load_dotenv(dotenv_path=env_path, override=True)
 
 
 class Settings(BaseSettings):
@@ -15,6 +23,7 @@ class Settings(BaseSettings):
         env_file=".env",
         env_file_encoding="utf-8",
         case_sensitive=True,
+        extra="ignore",
     )
 
     # Environment
@@ -29,7 +38,7 @@ class Settings(BaseSettings):
     CHROMA_PERSIST_DIR: str = "./data/chroma"
 
     # LLM
-    LLM_PROVIDER: str = "gemini"
+    LLM_PROVIDER: str = "openai"
     GOOGLE_API_KEY: str = ""
     OPENAI_API_KEY: str = ""
 

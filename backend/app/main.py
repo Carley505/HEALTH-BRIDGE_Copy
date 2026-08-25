@@ -17,7 +17,7 @@ from app.api.routes import chat, profile, plans
 async def lifespan(app: FastAPI):
     """Application lifespan events."""
     # Startup
-    print("🚀 Starting Health-bridge AI...")
+    print("[START] Starting Health-bridge AI...")
     
     # Initialize Firebase
     try:
@@ -27,17 +27,17 @@ async def lifespan(app: FastAPI):
         if not firebase_admin._apps:
             cred = credentials.Certificate(settings.FIREBASE_CREDENTIALS_PATH)
             firebase_admin.initialize_app(cred)
-            print("✅ Firebase Admin initialized")
+            print("[OK] Firebase Admin initialized")
     except Exception as e:
-        print(f"⚠️ Firebase initialization failed: {e}")
+        print(f"[WARN] Firebase initialization failed: {e}")
 
     await init_db()
-    print("✅ Database connected")
+    print("[OK] Database connected")
     yield
     # Shutdown
-    print("👋 Shutting down...")
+    print("[STOP] Shutting down...")
     await close_db()
-    print("✅ Database disconnected")
+    print("[OK] Database disconnected")
 
 
 def create_app() -> FastAPI:

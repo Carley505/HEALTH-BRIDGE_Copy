@@ -4,12 +4,14 @@ Chat API Routes
 Endpoints for chat sessions and messaging.
 """
 
-from typing import Optional
+from typing import Optional, List
 from uuid import uuid4
 from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel
 
 from app.api.deps import CurrentUser
+from app.models.chat import ChatSession, ChatMessage
+from app.services.chat_service import get_or_create_session, generate_chat_response
 
 router = APIRouter()
 
@@ -61,14 +63,13 @@ async def create_session(
     - follow_up: Returning user check-in
     - general: Educational questions
     """
-    session_id = str(uuid4())
-
-    # TODO: Create session in database (Phase 7)
+    uid = current_user.firebase_uid if hasattr(current_user, 'firebase_uid') else current_user.get('uid')
+    session = await get_or_create_session(user_id=uid, session_type=request.session_type)
 
     return CreateSessionResponse(
-        session_id=session_id,
-        session_type=request.session_type,
-        message=f"Session created. Type: {request.session_type}",
+        session_id=session.session_id,
+        session_type=session.session_type,
+        message=f"Session created. Type: {session.session_type}",
     )
 
 
@@ -78,19 +79,21 @@ async def send_message(
     current_user: CurrentUser,
 ):
     """
-    Send a message and get AI response.
-
-    This triggers the multi-agent pipeline (Phase 6).
+    Send a message and get AI response powered by OpenAI.
     """
-    # TODO: Implement agent orchestration (Phase 6)
+    uid = current_user.firebase_uid if hasattr(current_user, 'firebase_uid') else current_user.get('uid')
+
+    assistant_content = await generate_chat_response(
+        user_id=uid,
+        session_id=request.session_id,
+        user_message=request.content,
+        current_user=current_user,
+    )
 
     return SendMessageResponse(
         message_id=str(uuid4()),
-        content="Hello! I'm Health-bridge AI, your preventive health coach. "
-                "I can help you understand your risk for hypertension and diabetes, "
-                "and create a personalized 4-week habit plan. Would you like to start "
-                "with a quick health assessment?",
-        agent_name="supervisor",
+        content=assistant_content,
+        agent_name="health_coach_agent",
     )
 
 
@@ -100,6 +103,16 @@ async def get_session_messages(
     current_user: CurrentUser,
 ):
     """Get all messages in a session."""
-    # TODO: Retrieve messages from database (Phase 7)
-
-    return {"session_id": session_id, "messages": []}
+    messages = await ChatMessage.find(ChatMessage.session_id == session_id).sort("created_at").to_list()
+    
+    return {
+        "session_id": session_id,
+        "messages": [
+            {
+                "role": m.role,
+                "content": m.content,
+                "created_at": m.created_at.isoformat(),
+            }
+            for m in messages
+        ],
+    }

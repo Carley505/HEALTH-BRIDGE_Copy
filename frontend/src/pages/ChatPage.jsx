@@ -3,18 +3,35 @@ import { Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import ThemeToggle from '../components/ThemeToggle';
 import { ArrowLeft, Send, Sparkles, User } from 'lucide-react';
+import api from '../services/api';
 
 export default function ChatPage() {
     const { user } = useSelector((state) => state.auth);
+    const [sessionId, setSessionId] = useState(null);
     const [messages, setMessages] = useState([
         {
             role: 'assistant',
-            content: "Hello! I'm your AI health coach. I'm here to help you understand your health better and provide personalized recommendations. How can I assist you today?"
+            content: "Hello! I'm your AI health coach powered by HealthBridge AI. I'm here to help you understand your preventive health and provide personalized recommendations for hypertension and diabetes risk reduction. How can I assist you today?"
         }
     ]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const messagesEndRef = useRef(null);
+
+    // Initialize or restore session
+    useEffect(() => {
+        const initSession = async () => {
+            try {
+                const res = await api.post('/chat/session', { session_type: 'general' });
+                if (res.data?.session_id) {
+                    setSessionId(res.data.session_id);
+                }
+            } catch (err) {
+                console.error('Failed to initialize chat session:', err);
+            }
+        };
+        initSession();
+    }, []);
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -27,20 +44,33 @@ export default function ChatPage() {
     const handleSend = async () => {
         if (!input.trim() || isLoading) return;
 
-        const userMessage = { role: 'user', content: input };
+        const messageText = input.trim();
+        const userMessage = { role: 'user', content: messageText };
         setMessages(prev => [...prev, userMessage]);
         setInput('');
         setIsLoading(true);
 
-        // Simulate AI response (replace with actual API call)
-        setTimeout(() => {
-            const aiResponse = {
+        try {
+            const currentSessionId = sessionId || `session_${Date.now()}`;
+            const response = await api.post('/chat/message', {
+                session_id: currentSessionId,
+                content: messageText,
+            });
+
+            const assistantReply = response.data?.content || "I have received your message and updated your health context.";
+            setMessages(prev => [...prev, {
                 role: 'assistant',
-                content: "Thank you for sharing that with me. Based on your profile and what you've told me, I'd recommend focusing on regular physical activity and maintaining a balanced diet. Would you like more specific recommendations?"
-            };
-            setMessages(prev => [...prev, aiResponse]);
+                content: assistantReply,
+            }]);
+        } catch (error) {
+            console.error('Chat error:', error);
+            setMessages(prev => [...prev, {
+                role: 'assistant',
+                content: "I apologize, but I encountered an error reaching the health coach service. Please try sending your message again.",
+            }]);
+        } finally {
             setIsLoading(false);
-        }, 1500);
+        }
     };
 
     const handleKeyPress = (e) => {
@@ -92,7 +122,11 @@ export default function ChatPage() {
                                         : 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%)'
                                 }}>
                                 {message.role === 'user'
-                                    ? <span className="text-white text-sm font-bold">{user?.displayName?.charAt(0) || 'U'}</span>
+                                    ? (user?.photoURL ? (
+                                        <img src={user.photoURL} alt="User" className="w-full h-full object-cover" />
+                                    ) : (
+                                        <span className="text-white text-sm font-bold">{user?.displayName?.charAt(0) || 'U'}</span>
+                                    ))
                                     : <Sparkles className="w-4 h-4 text-white" />
                                 }
                             </div>

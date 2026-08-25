@@ -14,7 +14,7 @@ export default function SignupPage() {
     const [password, setPassword] = useState('');
 
     if (isAuthenticated) {
-        return <Navigate to="/dashboard" replace />;
+        return <Navigate to="/onboarding" replace />;
     }
 
     const handleGoogleLogin = () => {

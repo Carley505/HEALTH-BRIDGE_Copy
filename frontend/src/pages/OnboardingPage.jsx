@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { updateProfile } from '../features/profile/profileSlice';
+import { updateProfile, fetchProfile } from '../features/profile/profileSlice';
 import { useNavigate, Link } from 'react-router-dom';
 import ThemeToggle from '../components/ThemeToggle';
 import { Sparkles, ChevronRight, ChevronLeft, Check } from 'lucide-react';
@@ -49,6 +49,20 @@ export default function OnboardingPage() {
         alcohol_consumption: 'none',
         activity_level: 'sedentary',
     });
+
+    const { data: profile } = useSelector((state) => state.profile);
+
+    // Initial fetch and completion check
+    useEffect(() => {
+        dispatch(fetchProfile());
+    }, [dispatch]);
+
+    useEffect(() => {
+        if (!loading && profile?.age_band) {
+            console.log('Profile already complete, redirecting to dashboard');
+            navigate('/dashboard');
+        }
+    }, [loading, profile, navigate]);
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;

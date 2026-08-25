@@ -70,6 +70,21 @@ export const signupWithEmail = createAsyncThunk(
     }
 );
 
+export const updateUserAvatar = createAsyncThunk(
+    'auth/updateAvatar',
+    async (photoURL, { rejectWithValue }) => {
+        try {
+            const user = auth.currentUser;
+            if (!user) throw new Error('No user authenticated');
+
+            await updateProfile(user, { photoURL });
+            return photoURL;
+        } catch (error) {
+            return rejectWithValue(error.message);
+        }
+    }
+);
+
 export const logout = createAsyncThunk('auth/logout', async () => {
     await signOut(auth);
 });
@@ -137,6 +152,11 @@ const authSlice = createSlice({
             .addCase(signupWithEmail.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload;
+            })
+            .addCase(updateUserAvatar.fulfilled, (state, action) => {
+                if (state.user) {
+                    state.user.photoURL = action.payload;
+                }
             })
             .addCase(logout.fulfilled, (state) => {
                 state.user = null;

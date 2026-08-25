@@ -49,21 +49,26 @@ async def get_current_user(
     try:
         from app.models.user import User
         user = await User.find_one(User.firebase_uid == uid)
+        token_name = decoded_token.get('name') or (email.split('@')[0] if email else None)
         
         if not user:
             user = User(
                 email=email,
                 firebase_uid=uid,
-                display_name=decoded_token.get('name'),
+                display_name=token_name,
             )
             await user.create()
+        elif token_name and not user.display_name:
+            user.display_name = token_name
+            await user.save()
             
-        return user if user else {"uid": uid, "email": email}
+        return user if user else {"uid": uid, "email": email, "display_name": token_name}
         
     except Exception as e:
         print(f"User DB Error: {e}")
         # Fallback if DB fails but token valid
-        return {"uid": uid, "email": email}
+        fallback_name = decoded_token.get('name') or (email.split('@')[0] if email else None)
+        return {"uid": uid, "email": email, "display_name": fallback_name}
 
 
 # Type alias for dependency injection

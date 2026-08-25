@@ -28,13 +28,27 @@ backend/
 ## Setup
 
 ```bash
+# 1. Create a virtual environment
 python -m venv venv
-venv\Scripts\activate  # Windows
+
+# 2. Activate the virtual environment
+# For Windows Git Bash:
+source venv/Scripts/activate
+# For Windows PowerShell:
+.\venv\Scripts\activate
+# For macOS/Linux:
+source venv/bin/activate
+
+# 3. Install dependencies
 pip install -r requirements.txt
-cp .env.example .env   # Configure environment
+
+# 4. Configure environment
+cp .env.example .env
 ```
 
 ## Run Development Server
+
+Ensure your virtual environment is activated, then run:
 
 ```bash
 uvicorn app.main:app --reload

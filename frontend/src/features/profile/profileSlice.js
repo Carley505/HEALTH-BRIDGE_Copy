@@ -62,6 +62,11 @@ const profileSlice = createSlice({
             .addCase(updateProfile.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload;
+            })
+            .addCase('auth/logout/fulfilled', (state) => {
+                state.data = null;
+                state.error = null;
+                state.lastUpdated = null;
             });
     },
 });

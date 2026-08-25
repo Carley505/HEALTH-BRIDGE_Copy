@@ -19,18 +19,13 @@ export default function DashboardPage() {
   }, [dispatch]);
 
   useEffect(() => {
+    // Check if onboarding is needed
     if (!loading && user?.uid) {
       const skipKey = `onboarding_skipped_${user.uid}`;
       const isSkipped = localStorage.getItem(skipKey);
 
-      if (profile) {
-        if (!profile.age_band && !isSkipped) {
-          navigate('/onboarding');
-        }
-      } else {
-        if (!isSkipped) {
-          navigate('/onboarding');
-        }
+      if (!profile?.age_band && !isSkipped) {
+        navigate('/onboarding');
       }
     }
   }, [loading, profile, navigate, user]);
@@ -63,10 +58,10 @@ export default function DashboardPage() {
               <ThemeToggle />
 
               {/* User Avatar */}
-              {user?.photoURL ? (
+              {(profile?.photo_url || user?.photoURL) ? (
                 <img className="h-10 w-10 rounded-full object-cover ring-2 ring-offset-2"
                   style={{ ringColor: 'var(--color-primary)' }}
-                  src={user.photoURL} alt={user.displayName} />
+                  src={profile?.photo_url || user.photoURL} alt={user.displayName} />
               ) : (
                 <div className="h-10 w-10 rounded-full flex items-center justify-center text-white font-bold text-lg"
                   style={{ background: 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%)' }}>
@@ -165,13 +160,21 @@ export default function DashboardPage() {
                   border: '1px solid var(--border-color)'
                 }}>
                 <div className="px-6 py-5 flex justify-between items-center"
-                  style={{ borderBottom: '1px solid var(--border-color)' }}>
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl flex items-center justify-center"
-                      style={{ background: 'rgba(241, 143, 46, 0.1)' }}>
-                      <User className="w-5 h-5" style={{ color: 'var(--color-primary)' }} />
+                  style={{ borderBottom: '1px solid var(--glass-border)' }}>
+                  <div className="flex items-center gap-4">
+                    <div className="w-14 h-14 rounded-2xl overflow-hidden glass shadow-sm border border-white/20">
+                      {(profile?.photo_url || user?.photoURL) ? (
+                        <img src={profile?.photo_url || user.photoURL} alt="Avatar" className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-gradient-brand text-white font-bold text-xl">
+                          {user?.displayName?.charAt(0) || user?.email?.charAt(0) || '?'}
+                        </div>
+                      )}
                     </div>
-                    <h3 className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>Profile Summary</h3>
+                    <div>
+                      <h3 className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>Profile Summary</h3>
+                      <p className="text-xs opacity-60" style={{ color: 'var(--text-primary)' }}>Personal Details</p>
+                    </div>
                   </div>
                   <button
                     onClick={() => setIsEditing(true)}

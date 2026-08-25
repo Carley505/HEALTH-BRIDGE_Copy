@@ -25,6 +25,7 @@ class ConstraintsModel(BaseModel):
 
 class ProfileResponse(BaseModel):
     """Health profile response."""
+    photo_url: Optional[str] = None
     age_band: Optional[str] = None
     sex: Optional[str] = None
     family_history_hypertension: bool = False
@@ -41,6 +42,7 @@ class ProfileResponse(BaseModel):
 
 class UpdateProfileRequest(BaseModel):
     """Request to update profile."""
+    photo_url: Optional[str] = None
     age_band: Optional[str] = None
     sex: Optional[str] = None
     family_history_hypertension: Optional[bool] = None
@@ -88,7 +90,7 @@ async def update_profile(
         
     # Update fields
     update_data = request.model_dump(exclude_unset=True)
-    print(f"📝 Updating profile for {uid} with: {update_data}")
+    print(f"[UPDATE] Updating profile for {uid} with: {update_data}")
     
     for key, value in update_data.items():
         if key == "constraints":
@@ -102,7 +104,7 @@ async def update_profile(
             setattr(profile, key, value)
             
     await profile.save()
-    print("✅ Profile saved successfully")
+    print("[OK] Profile saved successfully")
     
     return ProfileResponse(**profile.model_dump())
 
