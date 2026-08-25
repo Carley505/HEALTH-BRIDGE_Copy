@@ -5,6 +5,7 @@ Environment-based configuration using Pydantic Settings.
 """
 
 import os
+import logging
 from pathlib import Path
 from typing import List
 from dotenv import dotenv_values, load_dotenv
