@@ -25,7 +25,12 @@ async def lifespan(app: FastAPI):
         from firebase_admin import credentials
         
         if not firebase_admin._apps:
-            cred = credentials.Certificate(settings.FIREBASE_CREDENTIALS_PATH)
+            if getattr(settings, "FIREBASE_CREDENTIALS_JSON", "").strip():
+                import json
+                cred_dict = json.loads(settings.FIREBASE_CREDENTIALS_JSON)
+                cred = credentials.Certificate(cred_dict)
+            else:
+                cred = credentials.Certificate(settings.FIREBASE_CREDENTIALS_PATH)
             firebase_admin.initialize_app(cred)
             print("[OK] Firebase Admin initialized")
     except Exception as e:

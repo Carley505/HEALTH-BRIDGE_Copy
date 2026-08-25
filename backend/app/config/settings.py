@@ -44,6 +44,7 @@ class Settings(BaseSettings):
 
     # Firebase
     FIREBASE_CREDENTIALS_PATH: str = "./firebase-credentials.json"
+    FIREBASE_CREDENTIALS_JSON: str = ""
 
     # Redis
     REDIS_URL: str = "redis://localhost:6379/0"
