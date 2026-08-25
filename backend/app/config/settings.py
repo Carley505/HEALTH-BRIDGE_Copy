@@ -7,7 +7,7 @@ Environment-based configuration using Pydantic Settings.
 import os
 import logging
 from pathlib import Path
-from typing import List
+from typing import List, Optional, Dict, Any
 from dotenv import dotenv_values, load_dotenv
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import model_validator
