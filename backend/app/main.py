@@ -4,13 +4,30 @@ Health-bridge AI - FastAPI Application
 Main entry point for the FastAPI application.
 """
 
+from dotenv import load_dotenv
+load_dotenv()  # populate os.environ from .env before any other imports
+
+import logging
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 
 from app.config.settings import settings
-from app.config.database import init_db, close_db
+from app.config.database import init_db, close_db, get_database
 from app.api.routes import chat, profile, plans
+from app.core.rate_limit import limiter
+
+# Configure logging so INFO messages from our app show in the terminal
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s | %(levelname)-7s | %(name)s | %(message)s",
+    datefmt="%H:%M:%S",
+)
+
+logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
@@ -23,7 +40,7 @@ async def lifespan(app: FastAPI):
     try:
         import firebase_admin
         from firebase_admin import credentials
-        
+
         if not firebase_admin._apps:
             if getattr(settings, "FIREBASE_CREDENTIALS_JSON", "").strip():
                 import json
@@ -56,13 +73,17 @@ def create_app() -> FastAPI:
         redoc_url="/redoc",
     )
 
+    # Rate limiting
+    app.state.limiter = limiter
+    app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
     # CORS middleware
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.CORS_ORIGINS,
         allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
+        allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        allow_headers=["Authorization", "Content-Type", "Accept"],
     )
 
     # Include routers
@@ -70,14 +91,25 @@ def create_app() -> FastAPI:
     app.include_router(profile.router, prefix="/api/profile", tags=["Profile"])
     app.include_router(plans.router, prefix="/api/plans", tags=["Plans"])
 
-    # Health check endpoint
+    # Health check with MongoDB ping
     @app.get("/health", tags=["Health"])
     async def health_check():
-        """Health check endpoint."""
+        """Health check endpoint with database connectivity verification."""
+        db_status = "unknown"
+        try:
+            db = get_database()
+            await db.command("ping")
+            db_status = "connected"
+        except Exception as e:
+            logger.warning("Health check DB ping failed: %s", e)
+            db_status = "disconnected"
+
+        status = "healthy" if db_status == "connected" else "degraded"
         return {
-            "status": "healthy",
+            "status": status,
             "service": "health-bridge-ai",
             "version": "0.1.0",
+            "database": db_status,
         }
 
     # Root endpoint

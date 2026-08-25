@@ -14,6 +14,7 @@ import os
 from app.config.settings import settings
 from app.core.rag.embeddings import get_embedding_client
 from app.core.rag.chunker import Chunk
+from opik import track
 
 
 class VectorRetriever:
@@ -33,33 +34,41 @@ class VectorRetriever:
     ):
         """
         Initialize the retriever with ChromaDB.
-        
+
         Args:
             collection_name: Name of the ChromaDB collection
-            persist_directory: Directory for persistent storage
+            persist_directory: Directory for persistent storage (ignored in HTTP mode)
         """
-        import chromadb
-        from chromadb.config import Settings as ChromaSettings
-        
-        persist_dir = persist_directory or settings.CHROMA_PERSIST_DIR
-        
-        # Ensure directory exists
-        os.makedirs(persist_dir, exist_ok=True)
-        
-        self.client = chromadb.PersistentClient(
-            path=persist_dir,
-            settings=ChromaSettings(anonymized_telemetry=False),
-        )
-        
+        from app.core.chroma_client import get_chroma_client
+
+        self.client = get_chroma_client()
+
         self.collection_name = collection_name
+
+        # We provide our own embeddings, so give ChromaDB a no-op
+        # function to prevent it from loading its default model (which
+        # hangs on Windows due to onnxruntime/PyTorch conflicts).
+        from chromadb.utils.embedding_functions import EmbeddingFunction
+
+        class _NoOpEmbedding(EmbeddingFunction):
+            def __init__(self):
+                pass  # Required by newer ChromaDB
+
+            def name(self) -> str:
+                return "noop_embedding"
+
+            def __call__(self, input):
+                return [[0.0] * 384 for _ in input]
+
         self.collection = self.client.get_or_create_collection(
             name=collection_name,
             metadata={
                 "description": "Health guideline documents for NCD prevention",
                 "hnsw:space": "cosine",  # Use cosine similarity
             },
+            embedding_function=_NoOpEmbedding(),
         )
-        
+
         self.embedding_client = get_embedding_client()
 
     def add_documents(
@@ -136,16 +145,18 @@ class VectorRetriever:
         formatted = []
         if results["documents"] and results["documents"][0]:
             for i, doc in enumerate(results["documents"][0]):
+                distance = results["distances"][0][i] if results["distances"] else 0
                 result = {
                     "content": doc,
                     "metadata": results["metadatas"][0][i] if results["metadatas"] else {},
-                    "distance": results["distances"][0][i] if results["distances"] else 0,
-                    "relevance_score": 1 - (results["distances"][0][i] if results["distances"] else 0),
+                    "distance": distance,
+                    "relevance_score": max(0.0, 1.0 - distance),  # Clamp to non-negative
                 }
                 formatted.append(result)
         
         return formatted
 
+    @track(name="rag_search_guidelines")
     def search_guidelines(
         self,
         query: str,
@@ -169,18 +180,23 @@ class VectorRetriever:
         Returns:
             List of relevant guideline chunks
         """
-        where = {}
-        
+        # Build filter list for ChromaDB
+        filters = []
         if condition:
-            where["condition"] = condition
+            filters.append({"condition": condition})
         if topic:
-            where["topic"] = topic
+            filters.append({"topic": topic})
         if source:
-            where["source"] = source
-        
-        # ChromaDB requires non-empty where clause or None
-        where_clause = where if where else None
-        
+            filters.append({"source": source})
+
+        # ChromaDB requires $and wrapper for multiple filters
+        if len(filters) > 1:
+            where_clause = {"$and": filters}
+        elif len(filters) == 1:
+            where_clause = filters[0]
+        else:
+            where_clause = None
+
         return self.search(query, k=k, where=where_clause)
 
     def get_collection_stats(self) -> Dict[str, Any]:

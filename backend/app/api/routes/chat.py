@@ -6,8 +6,9 @@ Endpoints for chat sessions and messaging.
 
 from typing import Optional, List
 from uuid import uuid4
-from fastapi import APIRouter, HTTPException, status
-from pydantic import BaseModel
+from fastapi import APIRouter, HTTPException, Request, status
+from pydantic import BaseModel, Field
+from datetime import datetime, timedelta
 
 from app.api.deps import CurrentUser
 from app.models.chat import ChatSession, ChatMessage
@@ -16,10 +17,17 @@ from app.services.chat_service import get_or_create_session, generate_chat_respo
 router = APIRouter()
 
 
-# Request/Response Models
+# ---------------------------------------------------------------------------
+# Request / Response Models
+# ---------------------------------------------------------------------------
+
 class CreateSessionRequest(BaseModel):
     """Request to create a new chat session."""
-    session_type: str = "general"  # intake, follow_up, general
+    session_type: str = Field(
+        default="general",
+        pattern=r"^(intake|follow_up|general)$",
+        description="Session type: intake, follow_up, or general",
+    )
 
 
 class CreateSessionResponse(BaseModel):
@@ -31,8 +39,13 @@ class CreateSessionResponse(BaseModel):
 
 class SendMessageRequest(BaseModel):
     """Request to send a message."""
-    session_id: str
-    content: str
+    session_id: str = Field(..., min_length=1, max_length=100)
+    content: str = Field(
+        ...,
+        min_length=1,
+        max_length=5000,
+        description="Message content (1-5000 characters)",
+    )
 
 
 class SendMessageResponse(BaseModel):
@@ -46,13 +59,56 @@ class MessageItem(BaseModel):
     """A single message in history."""
     role: str
     content: str
+    agent_name: Optional[str] = None
     created_at: str
 
 
+class SessionItem(BaseModel):
+    """A session in the list."""
+    session_id: str
+    session_type: str
+    is_active: bool
+    created_at: str
+    updated_at: str
+
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+def _uid(current_user) -> str:
+    """Extract user id from the current_user dependency (dict or User)."""
+    if isinstance(current_user, dict):
+        return current_user.get("uid")
+    return getattr(current_user, "firebase_uid", str(current_user.id))
+
+
+async def _persist_message(
+    session_id: str,
+    role: str,
+    content: str,
+    agent_name: Optional[str] = None,
+) -> ChatMessage:
+    """Save a chat message to MongoDB and return it."""
+    msg = ChatMessage(
+        session_id=session_id,
+        role=role,
+        content=content,
+        agent_name=agent_name,
+    )
+    await msg.insert()
+    return msg
+
+
+# ---------------------------------------------------------------------------
 # Endpoints
+# ---------------------------------------------------------------------------
+
 @router.post("/session", response_model=CreateSessionResponse)
+@limiter.limit("10/minute")
 async def create_session(
-    request: CreateSessionRequest,
+    request_body: CreateSessionRequest,
+    request: Request,
     current_user: CurrentUser,
 ):
     """
@@ -74,8 +130,10 @@ async def create_session(
 
 
 @router.post("/message", response_model=SendMessageResponse)
+@limiter.limit("20/minute")
 async def send_message(
-    request: SendMessageRequest,
+    request_body: SendMessageRequest,
+    request: Request,
     current_user: CurrentUser,
 ):
     """
@@ -95,11 +153,151 @@ async def send_message(
         content=assistant_content,
         agent_name="health_coach_agent",
     )
+    session_type = session.session_type if session else "general"
+
+    logger.info(">>> USER INPUT [full] session=%s: %s", request_body.session_id, request_body.content)
+
+    try:
+        result = await orchestrator.process_message(
+            user_id=uid,
+            session_id=request_body.session_id,
+            message=request_body.content,
+            session_type=session_type,
+        )
+
+        agent_name = result.get("agent_name", "supervisor")
+        content = result["content"]
+
+        logger.info("<<< LLM RESPONSE [full] agent=%s session=%s: %s", agent_name, request_body.session_id, content[:500])
+
+        # Persist the assistant message
+        saved = await _persist_message(
+            request_body.session_id, "assistant", content, agent_name
+        )
+
+        # Auto-save HabitPlan if the crew extracted habits
+        if hasattr(result, "habits") and result.get("habits"):
+            habits = []
+            for h in result["habits"]:
+                title = h.get("title") or h.get("action", "Habit")
+                description = h.get("description") or h.get("rationale", "")
+                category = h.get("category") or h.get("trigger", "general")
+                habits.append(Habit(
+                    title=title[:100] if title else "Habit",
+                    description=description,
+                    frequency=h.get("frequency", "daily"),
+                    category=category,
+                    difficulty=h.get("difficulty", "easy"),
+                ))
+            if habits:
+                plan = HabitPlan(
+                    user_id=uid,
+                    week_number=1,
+                    start_date=datetime.utcnow(),
+                    end_date=datetime.utcnow() + timedelta(weeks=4),
+                    habits=habits,
+                    status="active",
+                )
+                await plan.insert()
+
+        # Touch session timestamp
+        if session:
+            session.update_timestamp()
+            await session.save()
+
+        return SendMessageResponse(
+            message_id=str(saved.id),
+            content=content,
+            agent_name=agent_name,
+        )
+    except Exception as e:
+        logger.error(
+            "Chat error for user=%s session=%s: %s",
+            uid, request_body.session_id, e, exc_info=True,
+        )
+
+        fallback = "I'm sorry, I encountered an issue processing your message. Please try again."
+        saved = await _persist_message(
+            request_body.session_id, "assistant", fallback, "system"
+        )
+        return SendMessageResponse(
+            message_id=str(saved.id),
+            content=fallback,
+            agent_name="system",
+        )
+
+
+@router.post("/quick", response_model=SendMessageResponse)
+@limiter.limit("30/minute")
+async def send_quick_message(
+    request_body: SendMessageRequest,
+    request: Request,
+    current_user: CurrentUser,
+):
+    """
+    Quick single-turn response (lighter pipeline, faster).
+    """
+    from app.agents import get_orchestrator
+
+    uid = _uid(current_user)
+    orchestrator = get_orchestrator()
+
+    # Persist the user message
+    await _persist_message(request_body.session_id, "user", request_body.content)
+
+    logger.info(">>> USER INPUT [quick] session=%s: %s", request_body.session_id, request_body.content)
+
+    try:
+        result = await orchestrator.quick_message(
+            user_id=uid,
+            session_id=request_body.session_id,
+            message=request_body.content,
+        )
+
+        agent_name = result.get("agent_name", "quick")
+        content = result["content"]
+
+        logger.info("<<< LLM RESPONSE [quick] agent=%s session=%s: %s", agent_name, request_body.session_id, content[:500])
+
+        saved = await _persist_message(
+            request_body.session_id, "assistant", content, agent_name
+        )
+
+        # Touch session timestamp
+        session = await ChatSession.find_one(
+            ChatSession.session_id == request_body.session_id
+        )
+        if session:
+            session.update_timestamp()
+            await session.save()
+
+        return SendMessageResponse(
+            message_id=str(saved.id),
+            content=content,
+            agent_name=agent_name,
+        )
+    except Exception as e:
+        logger.error(
+            "Quick chat error for user=%s session=%s: %s",
+            uid, request_body.session_id, e, exc_info=True,
+        )
+
+        fallback = "I'm sorry, I encountered an issue. Please try again."
+        saved = await _persist_message(
+            request_body.session_id, "assistant", fallback, "system"
+        )
+        return SendMessageResponse(
+            message_id=str(saved.id),
+            content=fallback,
+            agent_name="system",
+        )
 
 
 @router.get("/session/{session_id}/messages")
+@limiter.limit("30/minute")
 async def get_session_messages(
     session_id: str,
+    request: Request,
     current_user: CurrentUser,
 ):
     """Get all messages in a session."""

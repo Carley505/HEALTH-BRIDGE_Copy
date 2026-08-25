@@ -1,11 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchProfile } from '../features/profile/profileSlice';
+import { fetchProfile, updateProfile } from '../features/profile/profileSlice';
 import { logout } from '../features/auth/authSlice';
 import ProfileForm from '../features/profile/ProfileForm';
 import { Link, useNavigate } from 'react-router-dom';
 import ThemeToggle from '../components/ThemeToggle';
-import { MessageSquare, User, Activity, LogOut, ChevronRight } from 'lucide-react';
+import { MessageSquare, User, Activity, LogOut, ChevronRight, Camera } from 'lucide-react';
 
 export default function DashboardPage() {
   const dispatch = useDispatch();
@@ -13,6 +13,35 @@ export default function DashboardPage() {
   const { data: profile, loading } = useSelector((state) => state.profile);
   const [isEditing, setIsEditing] = useState(false);
   const navigate = useNavigate();
+  const avatarInputRef = useRef(null);
+
+  const handleAvatarChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const img = new Image();
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const size = 128;
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext('2d');
+        const scale = Math.max(size / img.width, size / img.height);
+        const w = img.width * scale;
+        const h = img.height * scale;
+        ctx.drawImage(img, (size - w) / 2, (size - h) / 2, w, h);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+        dispatch(updateProfile({ photo_url: dataUrl }));
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  };
+
+  const avatarSrc = profile?.photo_url || user?.photoURL;
 
   useEffect(() => {
     dispatch(fetchProfile());
@@ -67,7 +96,7 @@ export default function DashboardPage() {
                   style={{ background: 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%)' }}>
                   {user?.displayName ? user.displayName.charAt(0).toUpperCase() : (user?.email ? user.email.charAt(0).toUpperCase() : '?')}
                 </div>
-              )}
+              </button>
 
               <span className="text-sm font-medium hidden sm:block" style={{ color: 'var(--text-primary)' }}>
                 {user?.displayName || user?.email?.split('@')[0]}
@@ -78,7 +107,7 @@ export default function DashboardPage() {
                 className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all hover:scale-105"
                 style={{
                   color: 'var(--color-accent)',
-                  background: 'rgba(231, 70, 39, 0.1)'
+                  background: 'rgba(var(--color-accent-rgb), 0.1)'
                 }}>
                 <LogOut className="w-4 h-4" />
                 <span className="hidden sm:inline">Logout</span>
@@ -105,8 +134,8 @@ export default function DashboardPage() {
         {!profile && !loading && (
           <div className="mb-8 p-4 rounded-xl animate-fadeIn"
             style={{
-              background: 'rgba(241, 143, 46, 0.1)',
-              border: '1px solid rgba(241, 143, 46, 0.3)'
+              background: 'rgba(var(--color-primary-rgb), 0.1)',
+              border: '1px solid rgba(var(--color-primary-rgb), 0.3)'
             }}>
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full flex items-center justify-center"
@@ -127,7 +156,7 @@ export default function DashboardPage() {
           <div className="rounded-2xl p-6 animate-fadeIn"
             style={{
               background: 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%)',
-              boxShadow: '0 10px 40px rgba(241, 143, 46, 0.3)'
+              boxShadow: '0 10px 40px rgba(var(--color-primary-rgb), 0.3)'
             }}>
             <div className="flex items-start justify-between">
               <div>
@@ -181,7 +210,7 @@ export default function DashboardPage() {
                     className="px-4 py-2 rounded-lg text-sm font-medium transition-all hover:scale-105"
                     style={{
                       color: 'var(--color-primary)',
-                      background: 'rgba(241, 143, 46, 0.1)'
+                      background: 'rgba(var(--color-primary-rgb), 0.1)'
                     }}>
                     Edit
                   </button>

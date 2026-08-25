@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import ThemeToggle from '../components/ThemeToggle';
@@ -16,7 +16,24 @@ export default function ChatPage() {
     ]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [sessionId, setSessionId] = useState(() => storageKey ? localStorage.getItem(storageKey) : null);
+    const [error, setError] = useState(null);
     const messagesEndRef = useRef(null);
+    const sessionInitialized = useRef(false);
+    const lastUidRef = useRef(uid);
+
+    // Reset session when user identity changes (profile switch / re-login)
+    useEffect(() => {
+        if (uid && uid !== lastUidRef.current) {
+            lastUidRef.current = uid;
+            const key = `chatSessionId_${uid}`;
+            const savedSession = localStorage.getItem(key);
+            setSessionId(savedSession);
+            setMessages([INITIAL_MESSAGE]);
+            setError(null);
+            sessionInitialized.current = false;
+        }
+    }, [uid]);
 
     // Initialize or restore session
     useEffect(() => {
@@ -41,14 +58,104 @@ export default function ChatPage() {
         scrollToBottom();
     }, [messages]);
 
+    // Initialize or restore chat session
+    const initializeSession = useCallback(async () => {
+        if (sessionInitialized.current || !storageKey) return;
+        sessionInitialized.current = true;
+
+        console.log('[ChatPage] Initializing session for user:', uid, 'existing sessionId:', sessionId);
+
+        try {
+            // 1. Try loading from the localStorage-cached session ID
+            if (sessionId) {
+                console.log('[ChatPage] Loading existing session messages...');
+                const response = await chatApi.getSessionMessages(sessionId);
+                if (response.data.messages && response.data.messages.length > 0) {
+                    setMessages(response.data.messages.map(msg => ({
+                        role: msg.role,
+                        content: msg.content
+                    })));
+                    console.log('[ChatPage] Loaded', response.data.messages.length, 'messages');
+                    return;
+                }
+            }
+
+            // 2. No local session — try to restore the user's most recent
+            //    backend session (handles cleared cache / new browser / re-login)
+            if (!sessionId) {
+                console.log('[ChatPage] No local session, checking backend for recent sessions...');
+                const sessionsResp = await chatApi.getSessions();
+                const sessions = sessionsResp.data.sessions || [];
+                if (sessions.length > 0) {
+                    const latest = sessions[0]; // sorted by -created_at on backend
+                    console.log('[ChatPage] Restoring most recent session:', latest.session_id);
+                    const msgsResp = await chatApi.getSessionMessages(latest.session_id);
+                    if (msgsResp.data.messages && msgsResp.data.messages.length > 0) {
+                        setSessionId(latest.session_id);
+                        localStorage.setItem(storageKey, latest.session_id);
+                        setMessages(msgsResp.data.messages.map(msg => ({
+                            role: msg.role,
+                            content: msg.content
+                        })));
+                        console.log('[ChatPage] Restored', msgsResp.data.messages.length, 'messages from backend');
+                        return;
+                    }
+                }
+            }
+
+            // 3. No session found anywhere — create a brand-new one
+            console.log('[ChatPage] Creating new session...');
+            const response = await chatApi.createSession('general');
+            const newSessionId = response.data.session_id;
+            console.log('[ChatPage] Created session:', newSessionId);
+            setSessionId(newSessionId);
+            localStorage.setItem(storageKey, newSessionId);
+        } catch (err) {
+            console.error('[ChatPage] Failed to initialize session:', err);
+            setError('Failed to initialize chat session. Please refresh.');
+            // If session restoration fails (e.g., invalid session), create a new one
+            if (sessionId) {
+                localStorage.removeItem(storageKey);
+                setSessionId(null);
+                sessionInitialized.current = false;
+            }
+        }
+    }, [sessionId, storageKey, uid]);
+
+    useEffect(() => {
+        initializeSession();
+    }, [initializeSession]);
+
     const handleSend = async () => {
+        console.log('[ChatPage] handleSend called, input:', input, 'isLoading:', isLoading);
         if (!input.trim() || isLoading) return;
 
         const messageText = input.trim();
         const userMessage = { role: 'user', content: messageText };
         setMessages(prev => [...prev, userMessage]);
+        const currentInput = input;
         setInput('');
         setIsLoading(true);
+        setError(null);
+
+        try {
+            // Ensure we have a session
+            let currentSessionId = sessionId;
+            console.log('[ChatPage] Current sessionId:', currentSessionId);
+
+            if (!currentSessionId) {
+                console.log('[ChatPage] No session, creating one...');
+                const sessionResponse = await chatApi.createSession('general');
+                currentSessionId = sessionResponse.data.session_id;
+                console.log('[ChatPage] Created session:', currentSessionId);
+                setSessionId(currentSessionId);
+                if (storageKey) localStorage.setItem(storageKey, currentSessionId);
+            }
+
+            // Send message to backend (using quick mode for fast responses)
+            console.log('[ChatPage] Sending message to session:', currentSessionId);
+            const response = await chatApi.sendQuickMessage(currentSessionId, currentInput);
+            console.log('[ChatPage] Got response:', response.data);
 
         try {
             const currentSessionId = sessionId || `session_${Date.now()}`;
@@ -80,6 +187,24 @@ export default function ChatPage() {
         }
     };
 
+    const handleNewChat = async () => {
+        try {
+            if (storageKey) localStorage.removeItem(storageKey);
+            setSessionId(null);
+            setMessages([INITIAL_MESSAGE]);
+            setError(null);
+            sessionInitialized.current = false;
+
+            const response = await chatApi.createSession('general');
+            const newSessionId = response.data.session_id;
+            setSessionId(newSessionId);
+            if (storageKey) localStorage.setItem(storageKey, newSessionId);
+        } catch (err) {
+            console.error('Failed to create new session:', err);
+            setError('Failed to start new chat. Please try again.');
+        }
+    };
+
     return (
         <div className="h-screen flex flex-col" style={{ background: 'var(--bg-primary)' }}>
             {/* Header */}
@@ -105,7 +230,17 @@ export default function ChatPage() {
                         </div>
                     </div>
                 </div>
-                <ThemeToggle />
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={handleNewChat}
+                        className="p-2 rounded-lg transition-colors hover:bg-opacity-80"
+                        style={{ color: 'var(--text-secondary)' }}
+                        title="New Chat"
+                    >
+                        <RotateCcw className="w-5 h-5" />
+                    </button>
+                    <ThemeToggle />
+                </div>
             </header>
 
             {/* Messages */}
@@ -172,6 +307,20 @@ export default function ChatPage() {
                     </div>
                 )}
 
+                {/* Error display */}
+                {error && (
+                    <div className="flex justify-center animate-fadeIn">
+                        <div className="px-4 py-2 rounded-lg text-sm"
+                            style={{
+                                background: 'var(--color-error, #ef4444)',
+                                color: 'white',
+                                opacity: 0.9
+                            }}>
+                            {error}
+                        </div>
+                    </div>
+                )}
+
                 <div ref={messagesEndRef} />
             </main>
 
@@ -199,7 +348,7 @@ export default function ChatPage() {
                         className="p-3 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105"
                         style={{
                             background: 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%)',
-                            boxShadow: '0 4px 14px rgba(241, 143, 46, 0.3)'
+                            boxShadow: '0 4px 14px rgba(var(--color-primary-rgb), 0.3)'
                         }}>
                         <Send className="w-5 h-5 text-white" />
                     </button>
