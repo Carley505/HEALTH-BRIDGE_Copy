@@ -13,6 +13,7 @@ from datetime import datetime, timedelta
 from app.api.deps import CurrentUser
 from app.models.chat import ChatSession, ChatMessage
 from app.services.chat_service import get_or_create_session, generate_chat_response
+from app.core.rate_limit import limiter
 
 router = APIRouter()
 
