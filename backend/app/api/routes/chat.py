@@ -121,7 +121,7 @@ async def create_session(
     - general: Educational questions
     """
     uid = current_user.firebase_uid if hasattr(current_user, 'firebase_uid') else current_user.get('uid')
-    session = await get_or_create_session(user_id=uid, session_type=request.session_type)
+    session = await get_or_create_session(user_id=uid, session_type=request_body.session_type)
 
     return CreateSessionResponse(
         session_id=session.session_id,
@@ -144,8 +144,8 @@ async def send_message(
 
     assistant_content = await generate_chat_response(
         user_id=uid,
-        session_id=request.session_id,
-        user_message=request.content,
+        session_id=request_body.session_id,
+        user_message=request_body.content,
         current_user=current_user,
     )
 
