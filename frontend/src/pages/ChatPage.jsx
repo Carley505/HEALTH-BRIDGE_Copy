@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
+import ReactMarkdown from 'react-markdown';
 import ThemeToggle from '../components/ThemeToggle';
 import { ArrowLeft, Send, Sparkles, RotateCcw } from 'lucide-react';
 import api from '../services/api';
@@ -224,7 +225,27 @@ export default function ChatPage() {
                                         ? '1.25rem 1.25rem 0.25rem 1.25rem'
                                         : '1.25rem 1.25rem 1.25rem 0.25rem'
                                 }}>
-                                <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
+                                {message.role === 'user' ? (
+                                    <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
+                                ) : (
+                                    <div className="text-sm leading-relaxed space-y-2">
+                                        <ReactMarkdown
+                                            components={{
+                                                p: ({ children }) => <p className="mb-2 last:mb-0 leading-relaxed">{children}</p>,
+                                                ul: ({ children }) => <ul className="list-disc pl-5 my-2 space-y-1.5">{children}</ul>,
+                                                ol: ({ children }) => <ol className="list-decimal pl-5 my-2 space-y-2 font-medium">{children}</ol>,
+                                                li: ({ children }) => <li className="pl-1 leading-relaxed">{children}</li>,
+                                                strong: ({ children }) => <strong className="font-bold text-[var(--color-primary)]">{children}</strong>,
+                                                h1: ({ children }) => <h1 className="text-base font-bold my-2 text-[var(--text-primary)]">{children}</h1>,
+                                                h2: ({ children }) => <h2 className="text-sm font-bold my-1.5 text-[var(--text-primary)]">{children}</h2>,
+                                                h3: ({ children }) => <h3 className="text-sm font-semibold my-1 text-[var(--text-primary)]">{children}</h3>,
+                                                code: ({ children }) => <code className="px-1.5 py-0.5 rounded text-xs bg-black/10 dark:bg-white/10 font-mono">{children}</code>,
+                                            }}
+                                        >
+                                            {message.content}
+                                        </ReactMarkdown>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>

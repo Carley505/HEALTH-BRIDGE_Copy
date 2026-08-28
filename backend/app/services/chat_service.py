@@ -35,10 +35,10 @@ def build_system_prompt(user_name: str, user_email: str, profile: Optional[Healt
         prompt += f"- Email: {user_email}\n"
 
     prompt += (
-        f"- When the user asks about their name, greeting, or identity, address them directly as {user_name}.\n\n"
-        "Instructions:\n"
+        "- Structure your answers clearly using numbered lists (1., 2., 3.) or bullet points (- ) with bold headers (e.g., **1. Balanced Diet:** ...).\n"
+        "- Separate distinct ideas into clean paragraphs for great readability.\n"
         "- Give actionable, practical, culturally relevant micro-habits.\n"
-        "- Keep replies direct, warm, concise (under 120 words unless detailed explanation requested).\n"
+        "- Keep replies direct, warm, concise, and structured.\n"
         "- Use the user's specific health profile below to personalize answers without repeating unnecessary generic questions.\n"
         "- Clarify that this is lifestyle guidance, not a clinical prescription.\n\n"
     )
