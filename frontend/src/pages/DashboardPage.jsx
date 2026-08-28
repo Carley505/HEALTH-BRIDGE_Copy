@@ -90,13 +90,13 @@ export default function DashboardPage() {
               {(profile?.photo_url || user?.photoURL) ? (
                 <img className="h-10 w-10 rounded-full object-cover ring-2 ring-offset-2"
                   style={{ ringColor: 'var(--color-primary)' }}
-                  src={profile?.photo_url || user.photoURL} alt={user.displayName} />
+                  src={profile?.photo_url || user.photoURL} alt={user?.displayName || 'User'} />
               ) : (
                 <div className="h-10 w-10 rounded-full flex items-center justify-center text-white font-bold text-lg"
                   style={{ background: 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%)' }}>
                   {user?.displayName ? user.displayName.charAt(0).toUpperCase() : (user?.email ? user.email.charAt(0).toUpperCase() : '?')}
                 </div>
-              </button>
+              )}
 
               <span className="text-sm font-medium hidden sm:block" style={{ color: 'var(--text-primary)' }}>
                 {user?.displayName || user?.email?.split('@')[0]}
