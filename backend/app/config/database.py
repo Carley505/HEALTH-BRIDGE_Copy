@@ -20,8 +20,11 @@ async def init_db() -> None:
     """Initialize MongoDB connection and Beanie ODM."""
     global _client
 
+    import certifi
+
     _client = AsyncIOMotorClient(
         settings.MONGODB_URL,
+        tlsCAFile=certifi.where(),
         maxPoolSize=50,
         minPoolSize=5,
         serverSelectionTimeoutMS=5000,
