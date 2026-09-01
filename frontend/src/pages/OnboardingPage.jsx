@@ -36,10 +36,11 @@ const steps = [
 export default function OnboardingPage() {
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const { loading } = useSelector((state) => state.profile);
     const { user } = useSelector((state) => state.auth);
+    const { data: profile } = useSelector((state) => state.profile);
 
     const [currentStep, setCurrentStep] = useState(0);
+    const [isSaving, setIsSaving] = useState(false);
     const [formData, setFormData] = useState({
         age_band: '18-29',
         sex: 'male',
@@ -50,19 +51,17 @@ export default function OnboardingPage() {
         activity_level: 'sedentary',
     });
 
-    const { data: profile } = useSelector((state) => state.profile);
-
     // Initial fetch and completion check
     useEffect(() => {
         dispatch(fetchProfile());
     }, [dispatch]);
 
     useEffect(() => {
-        if (!loading && profile?.age_band) {
+        if (profile?.age_band) {
             console.log('Profile already complete, redirecting to dashboard');
             navigate('/dashboard');
         }
-    }, [loading, profile, navigate]);
+    }, [profile, navigate]);
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
@@ -94,11 +93,19 @@ export default function OnboardingPage() {
     };
 
     const handleComplete = async () => {
+        setIsSaving(true);
         try {
+            if (user?.uid) {
+                localStorage.setItem(`onboarding_skipped_${user.uid}`, 'true');
+            }
             await dispatch(updateProfile(formData)).unwrap();
             navigate('/dashboard');
         } catch (err) {
-            console.error('Failed to save profile', err);
+            console.error('Failed to save profile:', err);
+            // Navigate to dashboard anyway so user is not blocked
+            navigate('/dashboard');
+        } finally {
+            setIsSaving(false);
         }
     };
 
@@ -337,7 +344,7 @@ export default function OnboardingPage() {
                     <div className="mt-6 sm:mt-8 flex justify-between items-center pt-4 sm:pt-6 gap-3" style={{ borderTop: '1px solid var(--border-color)' }}>
                         <button
                             onClick={handleBack}
-                            disabled={currentStep === 0}
+                            disabled={currentStep === 0 || isSaving}
                             className={`btn-secondary flex items-center justify-center gap-1.5 text-xs sm:text-sm py-2.5 px-4 ${currentStep === 0 ? 'opacity-0 pointer-events-none' : ''}`}
                         >
                             <ChevronLeft className="w-4 h-4" />
@@ -346,10 +353,10 @@ export default function OnboardingPage() {
 
                         <button
                             onClick={handleNext}
-                            disabled={loading}
+                            disabled={isSaving}
                             className="btn-primary flex items-center justify-center gap-1.5 text-xs sm:text-sm py-2.5 px-5 sm:px-6"
                         >
-                            {loading ? (
+                            {isSaving ? (
                                 <span className="flex items-center gap-2">
                                     <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
                                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
@@ -359,7 +366,7 @@ export default function OnboardingPage() {
                                 </span>
                             ) : (
                                 <>
-                                    {currentStep === steps.length - 1 ? 'Finish' : 'Next'}
+                                    {currentStep === 0 ? 'Get Started' : currentStep === steps.length - 1 ? 'Finish' : 'Next'}
                                     {currentStep !== steps.length - 1 && <ChevronRight className="w-4 h-4" />}
                                 </>
                             )}
