@@ -82,52 +82,52 @@ export default function ProfileForm({ existingProfile, onSuccess }) {
 
     return (
         <form onSubmit={handleSubmit}
-            className="glass-card overflow-hidden">
+            className="glass-card overflow-hidden w-full max-w-full">
 
             {/* Header */}
-            <div className="px-6 py-5" style={{ borderBottom: '1px solid var(--glass-border)' }}>
-                <h3 className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>
+            <div className="px-4 sm:px-6 py-4 sm:py-5" style={{ borderBottom: '1px solid var(--border-color)' }}>
+                <h3 className="text-base sm:text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>
                     {existingProfile ? 'Edit Profile' : 'Complete Your Profile'}
                 </h3>
-                <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>
+                <p className="text-xs sm:text-sm mt-0.5" style={{ color: 'var(--text-secondary)' }}>
                     Essential details for your health assessment
                 </p>
             </div>
 
-            <div className="p-6 space-y-8">
+            <div className="p-4 sm:p-6 space-y-6 sm:space-y-8 w-full">
                 {/* Avatar Selection */}
                 <div className="animate-fadeIn">
-                    <label className="block text-sm font-medium mb-4" style={{ color: 'var(--text-primary)' }}>
+                    <label className="block text-xs sm:text-sm font-medium mb-3" style={{ color: 'var(--text-primary)' }}>
                         Choose your avatar
                     </label>
-                    <div className="flex flex-wrap gap-6 items-center">
+                    <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 items-start sm:items-center">
                         <div
                             onClick={handleCustomAvatar}
-                            className="relative group cursor-pointer transition-transform hover:scale-105 active:scale-95"
+                            className="relative group cursor-pointer transition-transform hover:scale-105 active:scale-95 flex-shrink-0"
                         >
-                            <div className="w-24 h-24 rounded-2xl overflow-hidden glass shadow-xl flex items-center justify-center border-2 transition-all group-hover:border-primary"
-                                style={{ borderColor: formData.photo_url ? 'var(--color-primary)' : 'var(--glass-border)' }}>
+                            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden glass shadow-xl flex items-center justify-center border-2 transition-all group-hover:border-primary"
+                                style={{ borderColor: formData.photo_url ? 'var(--color-primary)' : 'var(--border-color)' }}>
                                 {formData.photo_url ? (
                                     <img src={formData.photo_url} alt="Profile" className="w-full h-full object-cover" />
                                 ) : (
-                                    <UserIcon className="w-12 h-12" style={{ color: 'var(--text-muted)' }} />
+                                    <UserIcon className="w-10 h-10 sm:w-12 sm:h-12" style={{ color: 'var(--text-muted)' }} />
                                 )}
                             </div>
                             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center rounded-2xl">
-                                <Camera className="w-8 h-8 text-white mb-1" />
-                                <span className="text-[10px] text-white font-medium uppercase tracking-wider">Change</span>
+                                <Camera className="w-6 h-6 sm:w-8 sm:h-8 text-white mb-1" />
+                                <span className="text-[9px] sm:text-[10px] text-white font-medium uppercase tracking-wider">Change</span>
                             </div>
                         </div>
 
-                        <div className="flex-1 min-w-[200px] flex flex-wrap gap-2">
+                        <div className="flex-1 w-full flex flex-wrap gap-2">
                             {AVATAR_PRESETS.map((url, idx) => (
                                 <button
                                     key={idx}
                                     type="button"
                                     onClick={() => handleAvatarSelect(url)}
-                                    className="w-10 h-10 rounded-xl overflow-hidden glass border transition-all hover:scale-110 active:scale-95"
+                                    className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl overflow-hidden glass border transition-all hover:scale-110 active:scale-95 flex-shrink-0"
                                     style={{
-                                        borderColor: formData.photo_url === url ? 'var(--color-primary)' : 'var(--glass-border)',
+                                        borderColor: formData.photo_url === url ? 'var(--color-primary)' : 'var(--border-color)',
                                         borderWidth: formData.photo_url === url ? '2px' : '1px'
                                     }}>
                                     <img src={url} alt={`Preset ${idx}`} className="w-full h-full object-cover" />
@@ -138,9 +138,9 @@ export default function ProfileForm({ existingProfile, onSuccess }) {
                 </div>
 
                 {/* Demographics */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                     <div>
-                        <label htmlFor="age_band" className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
+                        <label htmlFor="age_band" className="block text-xs sm:text-sm font-medium mb-1.5" style={{ color: 'var(--text-primary)' }}>
                             Age Group
                         </label>
                         <select
@@ -148,7 +148,7 @@ export default function ProfileForm({ existingProfile, onSuccess }) {
                             name="age_band"
                             value={formData.age_band}
                             onChange={handleChange}
-                            className="glass-input w-full"
+                            className="glass-input w-full text-xs sm:text-sm"
                         >
                             <option value="18-29">18-29</option>
                             <option value="30-39">30-39</option>
@@ -159,7 +159,7 @@ export default function ProfileForm({ existingProfile, onSuccess }) {
                     </div>
 
                     <div>
-                        <label htmlFor="sex" className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
+                        <label htmlFor="sex" className="block text-xs sm:text-sm font-medium mb-1.5" style={{ color: 'var(--text-primary)' }}>
                             Sex
                         </label>
                         <select
@@ -167,7 +167,7 @@ export default function ProfileForm({ existingProfile, onSuccess }) {
                             name="sex"
                             value={formData.sex}
                             onChange={handleChange}
-                            className="glass-input w-full"
+                            className="glass-input w-full text-xs sm:text-sm"
                         >
                             <option value="male">Male</option>
                             <option value="female">Female</option>
@@ -177,20 +177,20 @@ export default function ProfileForm({ existingProfile, onSuccess }) {
 
                 {/* Family History */}
                 <div>
-                    <label className="block text-sm font-medium mb-3" style={{ color: 'var(--text-primary)' }}>
+                    <label className="block text-xs sm:text-sm font-medium mb-2.5" style={{ color: 'var(--text-primary)' }}>
                         Family History
                     </label>
-                    <div className="space-y-3">
+                    <div className="space-y-2.5 sm:space-y-3">
                         {[
                             { name: 'family_history_hypertension', label: 'Hypertension', desc: 'High blood pressure in close family', checked: formData.family_history_hypertension },
                             { name: 'family_history_diabetes', label: 'Diabetes', desc: 'Diabetes in close family', checked: formData.family_history_diabetes },
                         ].map((item) => (
                             <label
                                 key={item.name}
-                                className="flex items-center p-4 rounded-xl cursor-pointer transition-all"
+                                className="flex items-center p-3 sm:p-4 rounded-xl cursor-pointer transition-all w-full"
                                 style={{
-                                    background: item.checked ? 'rgba(241, 143, 46, 0.1)' : 'var(--glass-bg)',
-                                    border: item.checked ? '2px solid var(--color-primary)' : '1px solid var(--glass-border)'
+                                    background: item.checked ? 'rgba(var(--color-primary-rgb), 0.1)' : 'var(--bg-elevated)',
+                                    border: item.checked ? '2px solid var(--color-primary)' : '1px solid var(--border-color)'
                                 }}>
                                 <input
                                     type="checkbox"
@@ -199,16 +199,16 @@ export default function ProfileForm({ existingProfile, onSuccess }) {
                                     onChange={handleChange}
                                     className="sr-only"
                                 />
-                                <div className="w-6 h-6 rounded-lg mr-4 flex items-center justify-center transition-all flex-shrink-0"
+                                <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-lg mr-3 sm:mr-4 flex items-center justify-center transition-all flex-shrink-0"
                                     style={{
-                                        background: item.checked ? 'var(--color-primary)' : 'var(--bg-elevated)',
-                                        border: item.checked ? 'none' : '2px solid var(--glass-border)'
+                                        background: item.checked ? 'var(--color-primary)' : 'var(--bg-surface)',
+                                        border: item.checked ? 'none' : '2px solid var(--border-color)'
                                     }}>
-                                    {item.checked && <Check className="w-4 h-4 text-white" />}
+                                    {item.checked && <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />}
                                 </div>
-                                <div>
-                                    <span className="font-medium block" style={{ color: 'var(--text-primary)' }}>{item.label}</span>
-                                    <span className="text-xs" style={{ color: 'var(--text-muted)' }}>{item.desc}</span>
+                                <div className="min-w-0">
+                                    <span className="font-medium text-xs sm:text-sm block truncate" style={{ color: 'var(--text-primary)' }}>{item.label}</span>
+                                    <span className="text-[11px] sm:text-xs truncate block" style={{ color: 'var(--text-muted)' }}>{item.desc}</span>
                                 </div>
                             </label>
                         ))}
@@ -216,9 +216,9 @@ export default function ProfileForm({ existingProfile, onSuccess }) {
                 </div>
 
                 {/* Lifestyle */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4" style={{ borderTop: '1px solid var(--glass-border)' }}>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4" style={{ borderTop: '1px solid var(--border-color)' }}>
                     <div>
-                        <label htmlFor="smoking_status" className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
+                        <label htmlFor="smoking_status" className="block text-xs sm:text-sm font-medium mb-1.5" style={{ color: 'var(--text-primary)' }}>
                             Smoking Status
                         </label>
                         <select
@@ -226,7 +226,7 @@ export default function ProfileForm({ existingProfile, onSuccess }) {
                             name="smoking_status"
                             value={formData.smoking_status}
                             onChange={handleChange}
-                            className="glass-input w-full"
+                            className="glass-input w-full text-xs sm:text-sm"
                         >
                             <option value="never">Never Smoked</option>
                             <option value="former">Former Smoker</option>
@@ -234,7 +234,7 @@ export default function ProfileForm({ existingProfile, onSuccess }) {
                         </select>
                     </div>
                     <div>
-                        <label htmlFor="alcohol_consumption" className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
+                        <label htmlFor="alcohol_consumption" className="block text-xs sm:text-sm font-medium mb-1.5" style={{ color: 'var(--text-primary)' }}>
                             Alcohol Consumption
                         </label>
                         <select
@@ -242,7 +242,7 @@ export default function ProfileForm({ existingProfile, onSuccess }) {
                             name="alcohol_consumption"
                             value={formData.alcohol_consumption}
                             onChange={handleChange}
-                            className="glass-input w-full"
+                            className="glass-input w-full text-xs sm:text-sm"
                         >
                             <option value="none">None</option>
                             <option value="occasional">Occasional</option>
@@ -250,7 +250,7 @@ export default function ProfileForm({ existingProfile, onSuccess }) {
                         </select>
                     </div>
                     <div className="sm:col-span-2">
-                        <label htmlFor="activity_level" className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
+                        <label htmlFor="activity_level" className="block text-xs sm:text-sm font-medium mb-1.5" style={{ color: 'var(--text-primary)' }}>
                             Activity Level
                         </label>
                         <select
@@ -258,7 +258,7 @@ export default function ProfileForm({ existingProfile, onSuccess }) {
                             name="activity_level"
                             value={formData.activity_level}
                             onChange={handleChange}
-                            className="glass-input w-full"
+                            className="glass-input w-full text-xs sm:text-sm"
                         >
                             <option value="sedentary">Sedentary (Little to no exercise)</option>
                             <option value="light">Light (1-3 days/week)</option>
@@ -270,14 +270,14 @@ export default function ProfileForm({ existingProfile, onSuccess }) {
             </div>
 
             {/* Footer */}
-            <div className="px-6 py-4 flex justify-end glass">
+            <div className="px-4 sm:px-6 py-3.5 sm:py-4 flex justify-end" style={{ background: 'var(--bg-elevated)', borderTop: '1px solid var(--border-color)' }}>
                 <button
                     type="submit"
                     disabled={loading}
-                    className="btn-primary"
+                    className="btn-primary w-full sm:w-auto text-xs sm:text-sm py-2.5 sm:py-3 px-5 sm:px-6"
                 >
                     {loading ? (
-                        <span className="flex items-center gap-2">
+                        <span className="flex items-center justify-center gap-2">
                             <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
                                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />

@@ -154,51 +154,52 @@ export default function ChatPage() {
     };
 
     return (
-        <div className="h-screen flex flex-col" style={{ background: 'var(--bg-primary)' }}>
+        <div className="h-screen h-[100dvh] flex flex-col w-full max-w-full overflow-x-hidden" style={{ background: 'var(--bg-primary)' }}>
             {/* Header */}
-            <header className="sticky top-0 z-50 px-4 py-3 flex items-center justify-between"
+            <header className="sticky top-0 z-50 px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between gap-2 flex-shrink-0"
                 style={{
-                    background: 'var(--bg-surface)',
+                    background: 'rgba(var(--bg-surface-rgb, 255, 255, 255), 0.9)',
+                    backdropFilter: 'blur(12px)',
                     borderBottom: '1px solid var(--border-color)'
                 }}>
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                     <Link to="/dashboard"
-                        className="p-2 rounded-lg transition-colors"
+                        className="p-1.5 sm:p-2 rounded-lg transition-colors flex-shrink-0"
                         style={{ color: 'var(--text-secondary)' }}>
                         <ArrowLeft className="w-5 h-5" />
                     </Link>
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl flex items-center justify-center"
+                    <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center flex-shrink-0"
                             style={{ background: 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%)' }}>
-                            <Sparkles className="w-5 h-5 text-white" />
+                            <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                         </div>
-                        <div>
-                            <h1 className="font-semibold" style={{ color: 'var(--text-primary)' }}>AI Health Coach</h1>
-                            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Always here to help</p>
+                        <div className="min-w-0">
+                            <h1 className="font-semibold text-sm sm:text-base truncate" style={{ color: 'var(--text-primary)' }}>AI Health Coach</h1>
+                            <p className="text-[11px] sm:text-xs truncate" style={{ color: 'var(--text-muted)' }}>Always here to help</p>
                         </div>
                     </div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
                     <button
                         onClick={handleNewChat}
-                        className="p-2 rounded-lg transition-colors hover:bg-opacity-80"
+                        className="p-2 rounded-lg transition-colors hover:bg-opacity-80 active:scale-95"
                         style={{ color: 'var(--text-secondary)' }}
                         title="New Chat"
                     >
-                        <RotateCcw className="w-5 h-5" />
+                        <RotateCcw className="w-4 h-4 sm:w-5 sm:h-5" />
                     </button>
                     <ThemeToggle />
                 </div>
             </header>
 
             {/* Messages */}
-            <main className="flex-1 overflow-y-auto p-4 space-y-4">
+            <main className="flex-1 overflow-y-auto overflow-x-hidden p-3 sm:p-4 space-y-3.5 sm:space-y-4 w-full">
                 {messages.map((message, idx) => (
                     <div key={idx}
-                        className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'} animate-fadeIn`}>
-                        <div className={`flex items-start gap-3 max-w-[80%] ${message.role === 'user' ? 'flex-row-reverse' : ''}`}>
+                        className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'} animate-fadeIn w-full`}>
+                        <div className={`flex items-start gap-2 sm:gap-3 max-w-[88%] sm:max-w-[78%] ${message.role === 'user' ? 'flex-row-reverse' : ''}`}>
                             {/* Avatar */}
-                            <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+                            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center flex-shrink-0"
                                 style={{
                                     background: message.role === 'user'
                                         ? 'var(--color-primary)'
@@ -208,13 +209,13 @@ export default function ChatPage() {
                                     ? (user?.photoURL ? (
                                         <img src={user.photoURL} alt="User" className="w-full h-full object-cover rounded-lg" />
                                     ) : (
-                                        <span className="text-white text-sm font-bold">{user?.displayName?.charAt(0) || 'U'}</span>
+                                        <span className="text-white text-xs sm:text-sm font-bold">{user?.displayName?.charAt(0) || 'U'}</span>
                                     ))
-                                    : <Sparkles className="w-4 h-4 text-white" />
+                                    : <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
                                 }
                             </div>
                             {/* Message Bubble */}
-                            <div className="px-4 py-3 rounded-2xl"
+                            <div className="px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-2xl shadow-sm break-anywhere overflow-hidden"
                                 style={{
                                     background: message.role === 'user'
                                         ? 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%)'
@@ -226,20 +227,20 @@ export default function ChatPage() {
                                         : '1.25rem 1.25rem 1.25rem 0.25rem'
                                 }}>
                                 {message.role === 'user' ? (
-                                    <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
+                                    <p className="text-xs sm:text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
                                 ) : (
-                                    <div className="text-sm leading-relaxed space-y-2">
+                                    <div className="text-xs sm:text-sm leading-relaxed space-y-2">
                                         <ReactMarkdown
                                             components={{
                                                 p: ({ children }) => <p className="mb-2 last:mb-0 leading-relaxed">{children}</p>,
-                                                ul: ({ children }) => <ul className="list-disc pl-5 my-2 space-y-1.5">{children}</ul>,
-                                                ol: ({ children }) => <ol className="list-decimal pl-5 my-2 space-y-2 font-medium">{children}</ol>,
-                                                li: ({ children }) => <li className="pl-1 leading-relaxed">{children}</li>,
-                                                strong: ({ children }) => <strong className="font-bold text-[var(--color-primary)]">{children}</strong>,
-                                                h1: ({ children }) => <h1 className="text-base font-bold my-2 text-[var(--text-primary)]">{children}</h1>,
-                                                h2: ({ children }) => <h2 className="text-sm font-bold my-1.5 text-[var(--text-primary)]">{children}</h2>,
-                                                h3: ({ children }) => <h3 className="text-sm font-semibold my-1 text-[var(--text-primary)]">{children}</h3>,
-                                                code: ({ children }) => <code className="px-1.5 py-0.5 rounded text-xs bg-black/10 dark:bg-white/10 font-mono">{children}</code>,
+                                                ul: ({ children }) => <ul className="list-disc pl-4 sm:pl-5 my-1.5 sm:my-2 space-y-1">{children}</ul>,
+                                                ol: ({ children }) => <ol className="list-decimal pl-4 sm:pl-5 my-1.5 sm:my-2 space-y-1.5 font-medium">{children}</ol>,
+                                                li: ({ children }) => <li className="pl-1 leading-relaxed font-normal">{children}</li>,
+                                                strong: ({ children }) => <strong className="font-semibold text-[var(--color-primary)]">{children}</strong>,
+                                                h1: ({ children }) => <h1 className="text-sm sm:text-base font-bold my-1.5 text-[var(--text-primary)]">{children}</h1>,
+                                                h2: ({ children }) => <h2 className="text-xs sm:text-sm font-bold my-1.5 text-[var(--text-primary)]">{children}</h2>,
+                                                h3: ({ children }) => <h3 className="text-xs sm:text-sm font-semibold my-1 text-[var(--text-primary)]">{children}</h3>,
+                                                code: ({ children }) => <code className="px-1.5 py-0.5 rounded text-[11px] sm:text-xs bg-black/10 dark:bg-white/10 font-mono break-all">{children}</code>,
                                             }}
                                         >
                                             {message.content}
@@ -253,19 +254,19 @@ export default function ChatPage() {
 
                 {/* Loading indicator */}
                 {isLoading && (
-                    <div className="flex justify-start animate-fadeIn">
-                        <div className="flex items-start gap-3">
-                            <div className="w-8 h-8 rounded-lg flex items-center justify-center"
+                    <div className="flex justify-start animate-fadeIn w-full">
+                        <div className="flex items-start gap-2 sm:gap-3">
+                            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center flex-shrink-0"
                                 style={{ background: 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%)' }}>
-                                <Sparkles className="w-4 h-4 text-white" />
+                                <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
                             </div>
-                            <div className="px-4 py-3 rounded-2xl"
+                            <div className="px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-2xl"
                                 style={{
                                     background: 'var(--bg-surface)',
                                     border: '1px solid var(--border-color)',
                                     borderRadius: '1.25rem 1.25rem 1.25rem 0.25rem'
                                 }}>
-                                <div className="flex gap-1">
+                                <div className="flex gap-1 py-1">
                                     <div className="w-2 h-2 rounded-full animate-bounce" style={{ background: 'var(--color-primary)', animationDelay: '0ms' }} />
                                     <div className="w-2 h-2 rounded-full animate-bounce" style={{ background: 'var(--color-primary)', animationDelay: '150ms' }} />
                                     <div className="w-2 h-2 rounded-full animate-bounce" style={{ background: 'var(--color-primary)', animationDelay: '300ms' }} />
@@ -277,12 +278,12 @@ export default function ChatPage() {
 
                 {/* Error display */}
                 {error && (
-                    <div className="flex justify-center animate-fadeIn">
-                        <div className="px-4 py-2 rounded-lg text-sm"
+                    <div className="flex justify-center animate-fadeIn w-full">
+                        <div className="px-4 py-2 rounded-lg text-xs sm:text-sm"
                             style={{
                                 background: 'var(--color-error, #ef4444)',
                                 color: 'white',
-                                opacity: 0.9
+                                opacity: 0.95
                             }}>
                             {error}
                         </div>
@@ -292,17 +293,17 @@ export default function ChatPage() {
                 <div ref={messagesEndRef} />
             </main>
 
-            {/* Input */}
-            <footer className="p-4" style={{ background: 'var(--bg-surface)', borderTop: '1px solid var(--border-color)' }}>
-                <div className="max-w-4xl mx-auto flex items-center gap-3">
-                    <div className="flex-1 relative">
+            {/* Input Footer */}
+            <footer className="p-2.5 sm:p-4 pb-safe flex-shrink-0 w-full" style={{ background: 'var(--bg-surface)', borderTop: '1px solid var(--border-color)' }}>
+                <div className="max-w-4xl mx-auto flex items-center gap-2 sm:gap-3 w-full">
+                    <div className="flex-1 relative min-w-0">
                         <input
                             type="text"
                             value={input}
                             onChange={(e) => setInput(e.target.value)}
                             onKeyPress={handleKeyPress}
                             placeholder="Type your message..."
-                            className="input w-full pr-12"
+                            className="input w-full text-xs sm:text-sm py-2.5 sm:py-3 px-3.5 sm:px-4"
                             style={{
                                 background: 'var(--bg-elevated)',
                                 border: '1px solid var(--border-color)',
@@ -313,12 +314,12 @@ export default function ChatPage() {
                     <button
                         onClick={handleSend}
                         disabled={!input.trim() || isLoading}
-                        className="p-3 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105"
+                        className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 active:scale-95 flex items-center justify-center flex-shrink-0 shadow-md"
                         style={{
                             background: 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%)',
                             boxShadow: '0 4px 14px rgba(var(--color-primary-rgb), 0.3)'
                         }}>
-                        <Send className="w-5 h-5 text-white" />
+                        <Send className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                     </button>
                 </div>
             </footer>

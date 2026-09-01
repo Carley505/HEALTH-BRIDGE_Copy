@@ -269,47 +269,43 @@ export default function OnboardingPage() {
     };
 
     return (
-        <div className="min-h-screen flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden"
+        <div className="min-h-screen min-h-[100dvh] flex flex-col justify-between py-4 sm:py-8 px-3.5 sm:px-6 lg:px-8 relative w-full max-w-full overflow-x-hidden"
             style={{ background: 'var(--bg-primary)' }}>
 
             {/* Background Gradient Orbs */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute top-20 right-20 w-64 h-64 rounded-full opacity-20"
+                <div className="absolute top-10 right-10 w-48 sm:w-64 h-48 sm:h-64 rounded-full opacity-20"
                     style={{ background: 'radial-gradient(circle, var(--color-primary) 0%, transparent 70%)' }} />
-                <div className="absolute bottom-20 left-20 w-80 h-80 rounded-full opacity-15"
+                <div className="absolute bottom-10 left-10 w-56 sm:w-80 h-56 sm:h-80 rounded-full opacity-15"
                     style={{ background: 'radial-gradient(circle, var(--color-accent) 0%, transparent 70%)' }} />
             </div>
 
             {/* Header */}
-            <div className="absolute top-6 left-6 right-6 flex justify-between items-center">
+            <div className="w-full max-w-xl mx-auto flex justify-between items-center mb-4 sm:mb-6 relative z-10 flex-shrink-0">
                 <Link to="/" className="flex items-center gap-2">
-                    <div className="w-10 h-10 rounded-xl flex items-center justify-center"
+                    <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center flex-shrink-0"
                         style={{ background: 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%)' }}>
-                        <span className="text-white font-bold text-lg">H</span>
+                        <span className="text-white font-bold text-base sm:text-lg">H</span>
                     </div>
-                    <span className="font-bold text-xl hidden sm:block" style={{ color: 'var(--text-primary)' }}>HealthBridge</span>
+                    <span className="font-bold text-lg sm:text-xl" style={{ color: 'var(--text-primary)' }}>HealthBridge</span>
                 </Link>
                 <ThemeToggle />
             </div>
 
-            <div className="sm:mx-auto sm:w-full sm:max-w-xl relative z-10">
+            <div className="w-full max-w-xl mx-auto relative z-10 my-auto">
                 {/* Card */}
-                <div className="rounded-2xl py-8 px-6 sm:px-10 shadow-2xl"
-                    style={{
-                        background: 'var(--bg-surface)',
-                        border: '1px solid var(--border-color)'
-                    }}>
+                <div className="rounded-2xl p-5 sm:p-8 shadow-2xl glass-card w-full">
 
                     {/* Progress Bar */}
-                    <div className="mb-8">
-                        <div className="flex justify-between items-center mb-4">
-                            <div className="flex gap-2">
+                    <div className="mb-6">
+                        <div className="flex justify-between items-center mb-3">
+                            <div className="flex gap-1.5 sm:gap-2">
                                 {steps.map((_, idx) => (
                                     <div
                                         key={idx}
                                         className="h-2 rounded-full transition-all duration-300"
                                         style={{
-                                            width: idx === currentStep ? '2rem' : '0.5rem',
+                                            width: idx === currentStep ? '1.75rem' : '0.4rem',
                                             background: idx <= currentStep ? 'var(--color-primary)' : 'var(--border-color)'
                                         }}
                                     />
@@ -318,31 +314,31 @@ export default function OnboardingPage() {
 
                             <button
                                 onClick={handleSkip}
-                                className="text-sm font-medium transition-colors"
+                                className="text-xs sm:text-sm font-medium transition-colors hover:opacity-80 py-1 px-2"
                                 style={{ color: 'var(--text-muted)' }}>
                                 Skip
                             </button>
                         </div>
 
-                        <h2 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
+                        <h2 className="text-xl sm:text-2xl font-bold break-words" style={{ color: 'var(--text-primary)' }}>
                             {steps[currentStep].title}
                         </h2>
-                        <p className="mt-1 text-sm" style={{ color: 'var(--text-secondary)' }}>
+                        <p className="mt-1 text-xs sm:text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
                             {steps[currentStep].description}
                         </p>
                     </div>
 
                     {/* Content */}
-                    <div className="min-h-[200px]">
+                    <div className="min-h-[180px] sm:min-h-[200px]">
                         {renderStepContent()}
                     </div>
 
                     {/* Footer */}
-                    <div className="mt-8 flex justify-between pt-6" style={{ borderTop: '1px solid var(--border-color)' }}>
+                    <div className="mt-6 sm:mt-8 flex justify-between items-center pt-4 sm:pt-6 gap-3" style={{ borderTop: '1px solid var(--border-color)' }}>
                         <button
                             onClick={handleBack}
                             disabled={currentStep === 0}
-                            className={`btn-secondary flex items-center gap-2 ${currentStep === 0 ? 'opacity-0 pointer-events-none' : ''}`}
+                            className={`btn-secondary flex items-center justify-center gap-1.5 text-xs sm:text-sm py-2.5 px-4 ${currentStep === 0 ? 'opacity-0 pointer-events-none' : ''}`}
                         >
                             <ChevronLeft className="w-4 h-4" />
                             Back
@@ -351,11 +347,11 @@ export default function OnboardingPage() {
                         <button
                             onClick={handleNext}
                             disabled={loading}
-                            className="btn-primary flex items-center gap-2"
+                            className="btn-primary flex items-center justify-center gap-1.5 text-xs sm:text-sm py-2.5 px-5 sm:px-6"
                         >
                             {loading ? (
                                 <span className="flex items-center gap-2">
-                                    <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
                                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                                     </svg>
@@ -371,10 +367,12 @@ export default function OnboardingPage() {
                     </div>
                 </div>
 
-                <p className="text-center text-xs mt-6" style={{ color: 'var(--text-muted)' }}>
+                <p className="text-center text-xs mt-4 sm:mt-6" style={{ color: 'var(--text-muted)' }}>
                     HealthBridge AI • Step {currentStep + 1} of {steps.length}
                 </p>
             </div>
+
+            <div className="h-2 flex-shrink-0" />
         </div>
     );
 }

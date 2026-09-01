@@ -28,46 +28,38 @@ export default function SignupPage() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8 relative overflow-hidden"
+        <div className="min-h-screen min-h-[100dvh] flex flex-col justify-between py-4 sm:py-8 px-3.5 sm:px-6 lg:px-8 relative w-full max-w-full overflow-x-hidden"
             style={{ background: 'var(--bg-primary)' }}>
 
             {/* Background Gradient Orbs */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute -top-40 -left-40 w-80 h-80 rounded-full opacity-20"
+                <div className="absolute -top-20 -left-20 w-64 sm:w-80 h-64 sm:h-80 rounded-full opacity-20"
                     style={{ background: 'radial-gradient(circle, var(--color-accent) 0%, transparent 70%)' }} />
-                <div className="absolute -bottom-40 -right-40 w-96 h-96 rounded-full opacity-15"
+                <div className="absolute -bottom-20 -right-20 w-72 sm:w-96 h-72 sm:h-96 rounded-full opacity-15"
                     style={{ background: 'radial-gradient(circle, var(--color-primary) 0%, transparent 70%)' }} />
             </div>
 
-            {/* Theme Toggle */}
-            <div className="absolute top-6 right-6">
+            {/* Header */}
+            <div className="w-full max-w-md mx-auto flex justify-between items-center mb-4 sm:mb-6 relative z-10 flex-shrink-0">
+                <Link to="/" className="flex items-center gap-2">
+                    <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                        style={{ background: 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%)' }}>
+                        <span className="text-white font-bold text-base sm:text-lg">H</span>
+                    </div>
+                    <span className="font-bold text-lg sm:text-xl" style={{ color: 'var(--text-primary)' }}>HealthBridge</span>
+                </Link>
                 <ThemeToggle />
             </div>
 
-            {/* Logo */}
-            <div className="absolute top-6 left-6">
-                <Link to="/" className="flex items-center gap-2">
-                    <div className="w-10 h-10 rounded-xl flex items-center justify-center"
-                        style={{ background: 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%)' }}>
-                        <span className="text-white font-bold text-lg">H</span>
-                    </div>
-                    <span className="font-bold text-xl" style={{ color: 'var(--text-primary)' }}>HealthBridge</span>
-                </Link>
-            </div>
-
-            <div className="max-w-md w-full animate-fadeIn relative z-10">
+            <div className="max-w-md w-full mx-auto animate-fadeIn relative z-10 my-auto">
                 {/* Card */}
-                <div className="rounded-2xl p-8 sm:p-10 shadow-2xl"
-                    style={{
-                        background: 'var(--bg-surface)',
-                        border: '1px solid var(--border-color)'
-                    }}>
+                <div className="rounded-2xl p-5 sm:p-8 shadow-2xl glass-card w-full">
 
-                    <div className="text-center mb-8">
-                        <h2 className="text-3xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>
+                    <div className="text-center mb-6 sm:mb-8">
+                        <h2 className="text-2xl sm:text-3xl font-bold mb-1.5" style={{ color: 'var(--text-primary)' }}>
                             Create Account
                         </h2>
-                        <p style={{ color: 'var(--text-secondary)' }}>
+                        <p className="text-xs sm:text-sm" style={{ color: 'var(--text-secondary)' }}>
                             Start your personalized health journey
                         </p>
                     </div>
