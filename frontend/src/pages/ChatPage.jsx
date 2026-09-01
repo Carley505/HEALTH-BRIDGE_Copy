@@ -158,32 +158,34 @@ export default function ChatPage() {
             {/* Header */}
             <header className="sticky top-0 z-50 px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between gap-2 flex-shrink-0"
                 style={{
-                    background: 'rgba(var(--bg-surface-rgb, 255, 255, 255), 0.9)',
+                    background: 'var(--nav-bg)',
                     backdropFilter: 'blur(12px)',
+                    WebkitBackdropFilter: 'blur(12px)',
                     borderBottom: '1px solid var(--border-color)'
                 }}>
                 <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                     <Link to="/dashboard"
-                        className="p-1.5 sm:p-2 rounded-lg transition-colors flex-shrink-0"
-                        style={{ color: 'var(--text-secondary)' }}>
+                        className="p-1.5 sm:p-2 rounded-lg transition-colors flex-shrink-0 hover:opacity-80"
+                        style={{ color: 'var(--text-primary)' }}
+                        title="Back to Dashboard">
                         <ArrowLeft className="w-5 h-5" />
                     </Link>
                     <div className="flex items-center gap-2.5 min-w-0">
-                        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm"
                             style={{ background: 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%)' }}>
                             <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                         </div>
                         <div className="min-w-0">
-                            <h1 className="font-semibold text-sm sm:text-base truncate" style={{ color: 'var(--text-primary)' }}>AI Health Coach</h1>
-                            <p className="text-[11px] sm:text-xs truncate" style={{ color: 'var(--text-muted)' }}>Always here to help</p>
+                            <h1 className="font-bold text-sm sm:text-base truncate" style={{ color: 'var(--text-primary)' }}>AI Health Coach</h1>
+                            <p className="text-[11px] sm:text-xs truncate font-medium" style={{ color: 'var(--text-muted)' }}>Always here to help</p>
                         </div>
                     </div>
                 </div>
                 <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
                     <button
                         onClick={handleNewChat}
-                        className="p-2 rounded-lg transition-colors hover:bg-opacity-80 active:scale-95"
-                        style={{ color: 'var(--text-secondary)' }}
+                        className="p-2 rounded-lg transition-colors hover:opacity-80 active:scale-95"
+                        style={{ color: 'var(--text-primary)' }}
                         title="New Chat"
                     >
                         <RotateCcw className="w-4 h-4 sm:w-5 sm:h-5" />

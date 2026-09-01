@@ -80,13 +80,19 @@ body {
 
 /* Light Mode (default) */
 :root {
-    --bg-primary: var(--color-light);
-    --bg-surface: var(--color-light-surface);
-    --bg-elevated: var(--color-light-elevated);
-    --border-color: var(--color-light-border);
-    --text-primary: var(--color-text-dark);
-    --text-secondary: #6B6B6A;
-    --text-muted: #8A8A89;
+    --bg-primary: #FFFFFF;
+    --bg-primary-rgb: 255, 255, 255;
+    --bg-surface: #F8FAFC;
+    --bg-surface-rgb: 248, 250, 252;
+    --bg-elevated: #F1F5F9;
+    --bg-elevated-rgb: 241, 245, 249;
+    --border-color: #E2E8F0;
+    --nav-bg: rgba(255, 255, 255, 0.92);
+    --text-primary: #0F172A;
+    --text-secondary: #475569;
+    --text-muted: #64748B;
+    --glass-bg: rgba(255, 255, 255, 0.7);
+    --glass-border: rgba(0, 0, 0, 0.08);
 
     /* Dynamic accent (overridden by JS when accent changes) */
     --color-primary: #F18F2E;
@@ -107,13 +113,19 @@ body {
 
 /* Dark Mode */
 :root.dark {
-    --bg-primary: var(--color-dark);
-    --bg-surface: var(--color-dark-surface);
-    --bg-elevated: var(--color-dark-elevated);
-    --border-color: var(--color-dark-border);
-    --text-primary: var(--color-text-light);
-    --text-secondary: #B5B5B4;
-    --text-muted: #8A8A89;
+    --bg-primary: #0A0D14;
+    --bg-primary-rgb: 10, 13, 20;
+    --bg-surface: #111726;
+    --bg-surface-rgb: 17, 23, 38;
+    --bg-elevated: #1A2234;
+    --bg-elevated-rgb: 26, 34, 52;
+    --border-color: rgba(255, 255, 255, 0.12);
+    --nav-bg: rgba(17, 23, 38, 0.92);
+    --text-primary: #F8FAFC;
+    --text-secondary: #94A3B8;
+    --text-muted: #64748B;
+    --glass-bg: rgba(17, 23, 38, 0.7);
+    --glass-border: rgba(255, 255, 255, 0.1);
 }
 
 :root.dark body {

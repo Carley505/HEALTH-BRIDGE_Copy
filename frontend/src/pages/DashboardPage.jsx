@@ -68,7 +68,7 @@ export default function DashboardPage() {
       {/* Navigation */}
       <nav className="sticky top-0 z-50 backdrop-blur-lg w-full"
         style={{
-          background: 'rgba(var(--bg-surface-rgb, 255, 255, 255), 0.85)',
+          background: 'var(--nav-bg)',
           borderBottom: '1px solid var(--border-color)'
         }}>
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
